@@ -53,7 +53,26 @@ a_new<-gsub("_","",a_new) #removes _ from all the words
 a_new<-gsub("-","",a_new) #removes - from all the words
 
 
+#now we make a function that can locate the words that are stored with a punctuation mark, and splits them into "word" and "punctuation mark"
+#we assume that all punctuation marks are the last character of the word that they are attached to
+split_punct<-function(x) {
+  ii<-grep("\\,|\\.|\\;|\\!|\\:|\\?",x)                    #first we create a vector containing the positions of all the words with punctuation marks in the passage
+  xs<-rep("",length(ii)+length(x))                         #vector to store all the words separated from the punctuation marks
+  k<-0                                                     #k defines the number of punctuation marks that has been separated from their respective word
+  for (i in 1:length(x)){
+    if (i %in% ii){                                                  #checks if each word has a punctuation mark attached to it
+      punc <- length(strsplit(x[i],"")[[1]])                         #strsplit(x[i],"") takes the word x[i] and breaks it down character by character, and via [[1]] we take the first character which is the vector containing all the characters in this word, so punc is the length of the word+punctuation mark
+      xs[i+k]<-paste(strsplit(x[i],"")[[1]][1:punc-1],collapse="")   #we keep only the characters that consist the word without the punctuation mark and with collapse="", it compiles the word again and then it places the word in the proper location, which is k places ahead of its original one
+      xs[i+k+1]<-paste(strsplit(x[i],"")[[1]][punc],collapse="")     #Similarly now it keeps the last character which is the punctuation mark, and places it to the proper location in the vector, on the right of its former attached word
+      k<-k+1                                                         #number of punctuation marks separated increased by one
+    }
+      else {
+        xs[i+k]<-x[i]                                                #no punctuation marks found, so we just add the word as it is
+      }
+    }
+  return(xs)                   #returns the amended passage with splitted words and punctuation marks
+}
 
-
-
+a_new<-split_punct(a_new)      #we separate all the punctuation marks from their respective words in the amended Shakespeare passage
+a<-tolower(a_new)              #we make all the words to be lower cased for most accurate results and we re-use the old a variable as it was not used anymore, and we finally have a cleaned passage
 
