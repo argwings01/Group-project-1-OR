@@ -85,7 +85,7 @@ b <- unique(a, incomparables = FALSE, fromLast = FALSE, nmax = NA)
 b
 # Matching each unique words to the vector a to know there positions
  
-index_vector <- match(a,b,nomatch = NA_integer_)
+index_vector <- match(a,b)
   
 # the number of times Each unique word occurs in the text
  
@@ -97,8 +97,30 @@ words_n <- tabulate (index_vector, nbins = length(b)) # normal use of tabulate
 
 
 word_freq <- data.frame( words=b, positions)        #Putting them in dataframe to for easy access to words
-sort_descend <- word_freq[order(word_freq$positions, decreasing = T), ]
-common <- min(1000, nrow(sort_descend))
-b <- sort_descend$words[1:common]
-b
+sort_descend <- word_freq[order(word_freq$positions, decreasing = T), ]  # arranging the frequencies of words from most to least
+common <- min(1000, nrow(sort_descend))       # Finding the 1000 most common words from the arranging
+b <- sort_descend$words[1:common]    # Vector b with 1000 most common words
+
+
+# making tokens of length a using match and making sure it has all common words
+
+tokens <- match( a, b)
+
+# Constructing the matrix M
+
+mlag<-4
+n <-length(tokens)  
+R <- c(n - mlag)
+
+# Giving the matrix dimensions 
+M <- matrix(NA, nrow = R, ncol = mlag + 1)
+
+# Fill the matrix column by column (for each lag)
+for (j in 0:mlag) {
+  start_index <- 1 + j                         # The starting index is 1 for the first column (lag 0) and increases with lag
+  end_index <- n - (mlag - j)                  # The ending index is n for the first column and decreases with lag
+  shifted_vector <- tokens[start_index:end_index]    # Extract the slice of the token vector
+  M[, j + 1] <- shifted_vector                   # Assign the slice to the correct column (j+1)
+}
+M
 
