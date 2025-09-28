@@ -1,5 +1,7 @@
+setwd("C:/Users/HP/Desktop/Statistical_programming/Group-project-1-OR/Group-project-1-OR")
 a <- scan("shakespeare.txt",what="character",skip=83,nlines=196043-83,
-          + fileEncoding="UTF-8")
+          fileEncoding="UTF-8")
+
 brace_places<-rep(0,2*length(grep("[[]",a))) #vector with length equal to the number of words containing braces
 
 #first we will remove all the words that are inside of braces [...]
@@ -40,9 +42,9 @@ for (i in 1:length(a)) {
   } else if (n>0){     #we are still inside braces, we don't add new words to the new vector and there is one less word remaining to be omitted
     n<-n-1
   } else {             #we are outside of braces and we add a new word 
-      if (a[i]==toupper(a[i]) & a[i] != "I" & a[i] != "A") {    #we omit all the upper case words/Arabic numbers except of "A" and "I"
-        next
-      }
+    if (a[i]==toupper(a[i]) & a[i] != "I" & a[i] != "A") {    #we omit all the upper case words/Arabic numbers except of "A" and "I"
+      next
+    }
     else {
       a_new[k]<-a[i]
       k<-k+1             #k increases in order to keep up with i, so in the next step a new word can be added
@@ -66,13 +68,37 @@ split_punct<-function(x) {
       xs[i+k+1]<-paste(strsplit(x[i],"")[[1]][punc],collapse="")     #Similarly now it keeps the last character which is the punctuation mark, and places it to the proper location in the vector, on the right of its former attached word
       k<-k+1                                                         #number of punctuation marks separated increased by one
     }
-      else {
-        xs[i+k]<-x[i]                                                #no punctuation marks found, so we just add the word as it is
-      }
+    else {
+      xs[i+k]<-x[i]                                                #no punctuation marks found, so we just add the word as it is
     }
+  }
   return(xs)                   #returns the amended passage with splitted words and punctuation marks
 }
 
 a_new<-split_punct(a_new)      #we separate all the punctuation marks from their respective words in the amended Shakespeare passage
 a<-tolower(a_new)              #we make all the words to be lower cased for most accurate results and we re-use the old a variable as it was not used anymore, and we finally have a cleaned passage
+a
+
+# Finding the unique elements in vector a of our cleaned data
+
+b <- unique(a, incomparables = FALSE, fromLast = FALSE, nmax = NA)
+b
+# Matching each unique words to the vector a to know there positions
+ 
+index_vector <- match(a,b,nomatch = NA_integer_)
+  
+# the number of times Each unique word occurs in the text
+ 
+positions <- tabulate( b % in % index_vector)        # attempting the use of %in% function
+words_n <- tabulate (index_vector, nbins = length(b)) # normal use of tabulate
+
+# Most common words used which are approximately 1000 words
+# Since using rank was tough to understand, we used the alternative order()
+
+
+word_freq <- data.frame( words=b, positions)        #Putting them in dataframe to for easy access to words
+sort_descend <- word_freq[order(word_freq$positions, decreasing = T), ]
+common <- min(1000, nrow(sort_descend))
+b <- sort_descend$words[1:common]
+b
 
