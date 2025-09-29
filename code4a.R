@@ -155,5 +155,11 @@ next.word<-function(key,M,M1,w=rep(1,ncol(M)-1)) {
     }
     adding_to_row<-adding_to_row+1
   }
-  return(u)
+  random_token<-0
+  while (random_token==0 || length(random_token)!=1) {
+    random_row<-sample(1:nrow(u), prob=w[1:nrow(u)]/sum(w)) 
+    random_column<-sample(1:ncol(u))
+    random_token<-u[random_row,random_column]
+  }
+  return(random_token)
 }
