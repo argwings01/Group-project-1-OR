@@ -88,15 +88,13 @@ index_vector <- match(a,b,nomatch = NA_integer_)
 index_vector <- match(a,b)
 
 # the number of times Each unique word occurs in the text
-
-positions <- tabulate( b %in% index_vector)        # attempting the use of %in% function
 words_n <- tabulate (index_vector, nbins = length(b)) # normal use of tabulate
 
 # Most common words used which are approximately 1000 words
 
 # Since using rank was tough to understand, we used the alternative order()
-word_freq <- data.frame( words=b, positions)        #Putting them in dataframe to for easy access to words
-sort_descend <- word_freq[order(word_freq$positions, decreasing = T), ]  # arranging the frequencies of words from most to least
+word_freq <- data.frame( words=b, words_n)        #Putting them in dataframe to for easy access to words
+sort_descend <- word_freq[order(word_freq$words_n, decreasing = T), ]  # arranging the frequencies of words from most to least
 common <- min(1000, nrow(sort_descend))       # Finding the 1000 most common words from the arranging
 b <- sort_descend$words[1:common]    # Vector b with 1000 most common words
 
@@ -126,50 +124,48 @@ for (j in 0:mlag) {
 M
 
 #now we will make a function which returns the token of the most likely following word, by giving the following:
-#key is the word sequence for which the next word is to be generated
+#key is the word sequence in tokens for which the next word is to be generated
 #M is the token matrix made above 
 #M1 is the vector of word tokens for the whole text
 #w is the vector of mixture weights
 next.word<-function(key,M,M1,w=rep(1,ncol(M)-1)) {
-mlag <- ncol(M)-1                                 #mlag represents the maximum length a key can be, so that the token for the next word can be taken from the matrix
-if (length(key)>mlag) {
-   key2<-key[(length(key)-mlag+1):length(key)]       #if the key is too long we consider only the final words of the key of maximum accepted length
- } else {
-     key2<-key                                       #otherwise we work with it as it is
-   }
+  mlag <- ncol(M)-1                                 #mlag represents the maximum length a key can be, so that the token for the next word can be taken from the matrix
+  if (length(key)>mlag) {
+    key2<-key[(length(key)-mlag+1):length(key)]     #if the key is too long we consider only the final words of the key of maximum accepted length
+   } else {
+       key2<-key                 #otherwise we work with it as it is
+    }
 
-u<-matrix(0,length(key2),nrow(M))                 #matrix where we will store all the tokens
+  u<-matrix(0,length(key2),nrow(M))                 #matrix where we will store all the tokens
    
-#in the following loops, we search for the tokens, placing at the i_th row of the matrix those that we find taking into account only the last i words of the key given
-adding_to_row<-1
-for (i in 1:length(key2)) {                       
-   key3<-key2[(length(key2)-i+1):length(key2)]               #every time we look at the last i words of our key
-   count<-1
-     for (mc in 1:(mlag-i+1)){                                 #we start checking each and every column at groups of length(key3) for matches, with the columns from mc to mc+length(key3)-1 being compared with the given key, hence mc can't exceed the value of mlag-i+1
-       ii <- colSums(!(t(M[,mc:(mc+i-1),drop=FALSE])==key3))     #the key is checked if it matches with any of the columns, this function returns a vector with zeros in the positions that represent a match at the same numbered column as long as they are finite
-       for (k in 1:length(ii)) {
-         if (ii[k]==0 & is.finite(ii[k]) & !(M[k,mc+i] %in% u[adding_to_row, ])) { #we locate all the matches found via the function and then we check if we have already found that match for the same number of words used from the key
-           u[adding_to_row,count]<-M[k,mc+i]                                       #we add the tokens to the matrix as intended
-           count<-count+1
-         }
-       }
+  #in the following loops, we search for the tokens, placing at the i_th row of the matrix those that we find by taking into account only the last i words of the key given
+  adding_to_row<-1                                                                                
+  for (i in 1:length(key2)) {                       
+     key3<-key2[(length(key2)-i+1):length(key2)]               #every time we look at the last i words of our key
+     ii <- colSums(!(t(M[,(mlag-length(key3)+1):mlag,drop=FALSE])==key3))     #the key is checked if it matches with any of the columns, this function returns a vector with zeros in the positions that represent a match at the same numbered column as long as they are finite
+     v<- which(ii==0 & is.finite(ii) & !(M[,mlag+1] %in% u[adding_to_row, ]))
+     if (length(v)>0) {
+       u[adding_to_row,][1:length(v)]<- M[v,mlag+1]
      }
      adding_to_row<-adding_to_row+1
   }
-#now we have a matrix with all the possible tokens, as mentioned above, and all the rest positions indicating the value "0"
-random_token<-0
-if (any(u>0)) {
-  while (random_token==0) {
-    random_row<-sample(1:nrow(u), prob=w[1:nrow(u)]/sum(w), size=1) #We randomly select a row using the given weights as the row indicates the number of words used by the keys and the weights are used as it follows: Σ_{i=1}^{m} w_i * P(next word | v[i:m])
-    random_column<-sample(1:ncol(u),size=1)                         #Then we pick a column at random which will indicate which one of the tokens in the row it returns
-    random_token<-u[random_row,random_column]                       #we define a new variable as the token located in the random row and column that were picked. If a "0" was picked we repeat the process until we pick a real token
+  #now we have a matrix with all the possible tokens, as mentioned above, and all the rest positions indicating the value "0"
+  random_token<-0
+  if (any(na.rm = TRUE)) {
+    while (random_token==0) {
+      random_row<-sample(1:nrow(u), prob=w[1:nrow(u)]/sum(w), size=1) #We randomly select a row using the given weights as the row indicates the number of words used by the keys and the weights are used as it follows: Σ_{i=1}^{m} w_i * P(next word | v[i:m])
+      random_column<-sample(1:ncol(u),size=1)                         #Then we pick a column at random which will indicate which one of the tokens in the row it returns
+      random_token<-u[random_row,random_column,drop=TRUE]             #we define a new variable as the token located in the random row and column that were picked. If a "0" was picked we repeat the process until we pick a real token
   }
-} else {random_token(M1,size=1)
+} else {
+  random_token<-sample(M1[!is.na(M1)],size=1)
   }
- return(random_token)                                             #the function returns the token
+ return(random_token)                                                 #the function returns the token
 }
 
-
-
-
-
+  
+  
+  
+  
+  
+  
