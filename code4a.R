@@ -1,5 +1,6 @@
+setwd("C:/Users/Alex/Documents/University/University_of_Edinburgh/1st_semester/statistical_programming/stats_assignment1")
 a <- scan("shakespeare.txt",what="character",skip=83,nlines=196043-83,
-          + fileEncoding="UTF-8")
+          fileEncoding="UTF-8")
 brace_places<-rep(0,2*length(grep("[[]",a))) #vector with length equal to the number of words containing braces
 
 #first we will remove all the words that are inside of braces [...]
@@ -40,9 +41,9 @@ for (i in 1:length(a)) {
   } else if (n>0){     #we are still inside braces, we don't add new words to the new vector and there is one less word remaining to be omitted
     n<-n-1
   } else {             #we are outside of braces and we add a new word 
-      if (a[i]==toupper(a[i]) & a[i] != "I" & a[i] != "A") {    #we omit all the upper case words/Arabic numbers except of "A" and "I"
-        next
-      }
+    if (a[i]==toupper(a[i]) & a[i] != "I" & a[i] != "A") {    #we omit all the upper case words/Arabic numbers except of "A" and "I"
+      next
+    }
     else {
       a_new[k]<-a[i]
       k<-k+1             #k increases in order to keep up with i, so in the next step a new word can be added
@@ -66,10 +67,10 @@ split_punct<-function(x) {
       xs[i+k+1]<-paste(strsplit(x[i],"")[[1]][punc],collapse="")     #Similarly now it keeps the last character which is the punctuation mark, and places it to the proper location in the vector, on the right of its former attached word
       k<-k+1                                                         #number of punctuation marks separated increased by one
     }
-      else {
-        xs[i+k]<-x[i]                                                #no punctuation marks found, so we just add the word as it is
-      }
+    else {
+      xs[i+k]<-x[i]                                                #no punctuation marks found, so we just add the word as it is
     }
+  }
   return(xs)                   #returns the amended passage with splitted words and punctuation marks
 }
 
@@ -88,7 +89,7 @@ index_vector <- match(a,b)
 
 # the number of times Each unique word occurs in the text
 
-positions <- tabulate( b % in % index_vector)        # attempting the use of %in% function
+positions <- tabulate( b %in% index_vector)        # attempting the use of %in% function
 words_n <- tabulate (index_vector, nbins = length(b)) # normal use of tabulate
 
 # Most common words used which are approximately 1000 words
@@ -130,36 +131,45 @@ M
 #M1 is the vector of word tokens for the whole text
 #w is the vector of mixture weights
 next.word<-function(key,M,M1,w=rep(1,ncol(M)-1)) {
-  mlag <- ncol(M)-1                                 #mlag represents the maximum length a key can be, so that the token for the next word can be taken from the matrix
-  if (length(key)>mlag) {
-    key2<-key[(length(key)-mlag):length(key)]       #if the key is too long we consider only the final words of the key of maximum accepted length
-  } else {
-    key2<-key                                       #otherwise we work with it as it is
-  }
+mlag <- ncol(M)-1                                 #mlag represents the maximum length a key can be, so that the token for the next word can be taken from the matrix
+if (length(key)>mlag) {
+   key2<-key[(length(key)-mlag+1):length(key)]       #if the key is too long we consider only the final words of the key of maximum accepted length
+ } else {
+     key2<-key                                       #otherwise we work with it as it is
+   }
 
-  u<-matrix(0,length(key2),nrow(M))                 #matrix where we will store all the tokens
-  
-  #in the following loops, we search for the tokens, placing at the i_th row of the matrix those that we find taking into account only the last i words of the key given
-  adding_to_row<-1
-  for (i in 1:length(key2)) {                       
-    key3<-key2[(length(key2)-i+1):length(key2)]               #every time we look at the last i words of our key
-    count<-1
-    for (mc in 1:(mlag-i+1)){                                 #we start checking each and every column at groups of length(key3) for matches, with the columns from mc to mc+length(key3)-1 being compared with the given key, hence mc can't exceed the value of mlag-i+1
-    ii <- colSums(!(t(M[,mc:(mc+i-1),drop=FALSE])==key3))     #the key is checked if it matches with any of the columns, this function returns a vector with zeros in the positions that represent a match at the same numbered column as long as they are finite
-      for (k in 1:length(ii)) {
-        if (ii[k]==0 & is.finite(ii[k]) & !(M[k,mc+i] %in% u[adding_to_row, ])) { #we locate all the matches found via the function and then we check if we have already found that match for the same number of words used from the key
-          u[adding_to_row,count]<-M[k,mc+i]                                       #we add the tokens to the matrix as intended
-          count<-count+1
-        }
-      }
-    }
-    adding_to_row<-adding_to_row+1
+u<-matrix(0,length(key2),nrow(M))                 #matrix where we will store all the tokens
+   
+#in the following loops, we search for the tokens, placing at the i_th row of the matrix those that we find taking into account only the last i words of the key given
+adding_to_row<-1
+for (i in 1:length(key2)) {                       
+   key3<-key2[(length(key2)-i+1):length(key2)]               #every time we look at the last i words of our key
+   count<-1
+     for (mc in 1:(mlag-i+1)){                                 #we start checking each and every column at groups of length(key3) for matches, with the columns from mc to mc+length(key3)-1 being compared with the given key, hence mc can't exceed the value of mlag-i+1
+       ii <- colSums(!(t(M[,mc:(mc+i-1),drop=FALSE])==key3))     #the key is checked if it matches with any of the columns, this function returns a vector with zeros in the positions that represent a match at the same numbered column as long as they are finite
+       for (k in 1:length(ii)) {
+         if (ii[k]==0 & is.finite(ii[k]) & !(M[k,mc+i] %in% u[adding_to_row, ])) { #we locate all the matches found via the function and then we check if we have already found that match for the same number of words used from the key
+           u[adding_to_row,count]<-M[k,mc+i]                                       #we add the tokens to the matrix as intended
+           count<-count+1
+         }
+       }
+     }
+     adding_to_row<-adding_to_row+1
   }
-  random_token<-0
-  while (random_token==0 || length(random_token)!=1) {
-    random_row<-sample(1:nrow(u), prob=w[1:nrow(u)]/sum(w)) 
-    random_column<-sample(1:ncol(u))
-    random_token<-u[random_row,random_column]
+#now we have a matrix with all the possible tokens, as mentioned above, and all the rest positions indicating the value "0"
+random_token<-0
+if (any(u>0)) {
+  while (random_token==0) {
+    random_row<-sample(1:nrow(u), prob=w[1:nrow(u)]/sum(w), size=1) #We randomly select a row using the given weights as the row indicates the number of words used by the keys and the weights are used as it follows: Σ_{i=1}^{m} w_i * P(next word | v[i:m])
+    random_column<-sample(1:ncol(u),size=1)                         #Then we pick a column at random which will indicate which one of the tokens in the row it returns
+    random_token<-u[random_row,random_column]                       #we define a new variable as the token located in the random row and column that were picked. If a "0" was picked we repeat the process until we pick a real token
   }
-  return(random_token)
+} else {random_token(M1,size=1)
+  }
+ return(random_token)                                             #the function returns the token
 }
+
+
+
+
+
