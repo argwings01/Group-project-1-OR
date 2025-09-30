@@ -142,23 +142,23 @@ next.word<-function(key,M,M1,w=rep(1,ncol(M)-1)) {
   adding_to_row<-1                                                                                
   for (i in 1:length(key2)) {                       
      key3<-key2[(length(key2)-i+1):length(key2)]               #every time we look at the last i words of our key
-     ii <- colSums(!(t(M[,(mlag-length(key3)+1):mlag,drop=FALSE])==key3))     #the key is checked if it matches with any of the columns, this function returns a vector with zeros in the positions that represent a match at the same numbered column as long as they are finite
-     v<- which(ii==0 & is.finite(ii) & !(M[,mlag+1] %in% u[adding_to_row, ]))
+     ii<-colSums(!(t(M[,(mlag-length(key3)+1):mlag,drop=FALSE])==key3))       #the key is checked if it matches with any of the columns, this function returns a vector with zeros in the positions that represent a match at the same numbered column as long as they are finite
+     v<-which(ii==0 & is.finite(ii) & !(M[,mlag+1] %in% u[adding_to_row, ]))  #v is a vector containing all the locations of ii where the value there is equal to zero and finite, and it also omits the locations that have already been added to this specific row
      if (length(v)>0) {
-       u[adding_to_row,][1:length(v)]<- M[v,mlag+1]
+       u[adding_to_row,][1:length(v)]<- M[v,mlag+1]                           #If any matches were found, then v contains at least one element, and then we add all the elements to the respective row in u
      }
-     adding_to_row<-adding_to_row+1
+     adding_to_row<-adding_to_row+1                                           #we continue to the next row
   }
   #now we have a matrix with all the possible tokens, as mentioned above, and all the rest positions indicating the value "0"
   random_token<-0
-  if (any(na.rm = TRUE)) {
+  if (any(na.rm = TRUE)) {                                      #we omit any potential NAs
     while (random_token==0) {
       random_row<-sample(1:nrow(u), prob=w[1:nrow(u)]/sum(w), size=1) #We randomly select a row using the given weights as the row indicates the number of words used by the keys and the weights are used as it follows: Σ_{i=1}^{m} w_i * P(next word | v[i:m])
       random_column<-sample(1:ncol(u),size=1)                         #Then we pick a column at random which will indicate which one of the tokens in the row it returns
       random_token<-u[random_row,random_column,drop=TRUE]             #we define a new variable as the token located in the random row and column that were picked. If a "0" was picked we repeat the process until we pick a real token
   }
 } else {
-  random_token<-sample(M1[!is.na(M1)],size=1)
+  random_token<-sample(M1[!is.na(M1)],size=1)                         #if we had a NA then the algorithm picks one token at random from the text that is not a NA 
   }
  return(random_token)                                                 #the function returns the token
 }
