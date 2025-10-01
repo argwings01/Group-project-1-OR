@@ -166,9 +166,42 @@ next.word<-function(key,M,M1,w=rep(1,ncol(M)-1)) {
 
 first_word<-"."
 while (first_word %in% c(",",".",";","!",":","?"," ")) {
-   first_word<-sample(a,size=3)
+   first_word<-sample(a,size=1)
+}
+alex<-1
+new_word<-"abcde"
+while (!(new_word %in% c(".","?","!"))) {
+token_position<-grep(first_word,a)[1]
+token_of_word<-tokens[token_position]
+next_token<-next.word(token_of_word,M,tokens)
+position_of_next_token<-grep(next_token,tokens)[1]
+new_word<-a[position_of_next_token]
+print(new_word)
+first_word<-append(first_word, new_word)
+}
+print(first_word)
+
+
+
+
+
+
+
+
+
+for (i in length(tokens)){
+  
+  while (i=="." ){
+    words<- 
+  }
 }
   
   
-  
-  
+
+
+
+
+
+
+
+
