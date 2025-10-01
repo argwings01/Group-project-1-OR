@@ -52,6 +52,7 @@ for (i in 1:length(a)) {
 }
 a_new<-gsub("_","",a_new) #removes _ from all the words
 a_new<-gsub("-","",a_new) #removes - from all the words
+a_new<-gsub("—","",a_new) #removes — from all the words
 
 
 #now we make a function that can locate the words that are stored with a punctuation mark, and splits them into "word" and "punctuation mark"
@@ -163,8 +164,10 @@ next.word<-function(key,M,M1,w=rep(1,ncol(M)-1)) {
  return(random_token)                                                 #the function returns the token
 }
 
-  
-  
+first_word<-"."
+while (first_word %in% c(",",".",";","!",":","?"," ")) {
+   first_word<-sample(a,size=3)
+}
   
   
   
