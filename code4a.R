@@ -60,20 +60,12 @@ a_new<-gsub("—","",a_new) #removes — from all the words
 split_punct<-function(x) {
   ii<-grep("\\,|\\.|\\;|\\!|\\:|\\?",x)                    #first we create a vector containing the positions of all the words with punctuation marks in the passage
   xs<-rep("",length(ii)+length(x))                         #vector to store all the words separated from the punctuation marks
-  k<-0                                                     #k defines the number of punctuation marks that has been separated from their respective word
-  for (i in 1:length(x)){
-    if (i %in% ii){                                                  #checks if each word has a punctuation mark attached to it
-      punc <- length(strsplit(x[i],"")[[1]])                         #strsplit(x[i],"") takes the word x[i] and breaks it down character by character, and via [[1]] we take the first character which is the vector containing all the characters in this word, so punc is the length of the word+punctuation mark
-      xs[i+k]<-paste(strsplit(x[i],"")[[1]][1:punc-1],collapse="")   #we keep only the characters that consist the word without the punctuation mark and with collapse="", it compiles the word again and then it places the word in the proper location, which is k places ahead of its original one
-      xs[i+k+1]<-paste(strsplit(x[i],"")[[1]][punc],collapse="")     #Similarly now it keeps the last character which is the punctuation mark, and places it to the proper location in the vector, on the right of its former attached word
-      k<-k+1                                                         #number of punctuation marks separated increased by one
-    }
-    else {
-      xs[i+k]<-x[i]                                                #no punctuation marks found, so we just add the word as it is
-    }
-  }
+  iis<-ii+1:length(ii)
+  xs[iis]<-substr(x[ii],nchar(x[ii]),nchar(x[ii]))
+  xs[-iis] <- x
+  xs[ii+(1:length(ii))-1]<-substr(xs[ii+(1:length(ii))-1],1,nchar(xs[ii+(1:length(ii))-1])-1)
   return(xs)                   #returns the amended passage with splitted words and punctuation marks
-}
+}  
 
 a_new<-split_punct(a_new)      #we separate all the punctuation marks from their respective words in the amended Shakespeare passage
 a<-tolower(a_new)              #we make all the words to be lower cased for most accurate results and we re-use the old a variable as it was not used anymore, and we finally have a cleaned passage
@@ -82,7 +74,7 @@ a<-tolower(a_new)              #we make all the words to be lower cased for most
 # Finding the unique elements in vector a of our cleaned data
 
 b <- unique(a, incomparables = FALSE, fromLast = FALSE, nmax = NA)
-b
+
 # Matching each unique words to the vector a to know there positions
 
 index_vector <- match(a,b,nomatch = NA_integer_)
@@ -121,8 +113,6 @@ for (j in 0:mlag) {
   shifted_vector <- tokens[start_index:end_index]    # Extract the slice of the token vector
   M[, j + 1] <- shifted_vector                   # Assign the slice to the correct column (j+1)
 }
-
-M
 
 #now we will make a function which returns the token of the most likely following word, by giving the following:
 #key is the word sequence in tokens for which the next word is to be generated
@@ -164,38 +154,26 @@ next.word<-function(key,M,M1,w=rep(1,ncol(M)-1)) {
  return(random_token)                                                 #the function returns the token
 }
 
-first_word<-"."
-while (first_word %in% c(",",".",";","!",":","?"," ")) {
-   first_word<-sample(a,size=1)
+sentence<-","
+while (sentence %in% c(",",".",";","!",":","?"," ")) {
+  sentence<-sample(a,size=1)
 }
-alex<-1
+print(sentence)
+
 new_word<-"abcde"
 while (!(new_word %in% c(".","?","!"))) {
-token_position<-grep(first_word,a)[1]
-token_of_word<-tokens[token_position]
-next_token<-next.word(token_of_word,M,tokens)
-position_of_next_token<-grep(next_token,tokens)[1]
-new_word<-a[position_of_next_token]
-print(new_word)
-first_word<-append(first_word, new_word)
+    token_position<-rep("",length(sentence))
+    token_position<-grep(sentence,a)[1]
+    token_of_word<-rep("",length(sentence))
+    token_of_word<-tokens[token_position]
+  next_token<-next.word(token_of_word,M,tokens)
+  position_of_next_token<-grep(next_token,tokens)[1]
+  new_word<-a[position_of_next_token]
+  print(new_word)
+  first_word<-new_word
+  sentence[length(sentence)+1]<-new_word
 }
-print(first_word)
-
-
-
-
-
-
-
-
-
-for (i in length(tokens)){
-  
-  while (i=="." ){
-    words<- 
-  }
-}
-  
+cat(sentence, sep=" ")
   
 
 
