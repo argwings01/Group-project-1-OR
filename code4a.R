@@ -1,3 +1,4 @@
+setwd("C:/Users/HP/Desktop/Statistical_programming/Group-project-1-OR/Group-project-1-OR")
 a <- scan("shakespeare.txt",what="character",skip=83,nlines=196043-83,
           + fileEncoding="UTF-8")
 brace_places<-rep(0,2*length(grep("[[]",a))) #vector with length equal to the number of words containing braces
@@ -94,8 +95,8 @@ words_n <- tabulate (index_vector, nbins = length(b)) # normal use of tabulate
 # Most common words used which are approximately 1000 words
 
 # Since using rank was tough to understand, we used the alternative order()
-word_freq <- data.frame( words=b, positions)        #Putting them in dataframe to for easy access to words
-sort_descend <- word_freq[order(word_freq$positions, decreasing = T), ]  # arranging the frequencies of words from most to least
+word_freq <- data.frame( words=b, words_n)        #Putting them in dataframe to for easy access to words
+sort_descend <- word_freq[order(word_freq$words_n, decreasing = T), ]  # arranging the frequencies of words from most to least
 common <- min(1000, nrow(sort_descend))       # Finding the 1000 most common words from the arranging
 b <- sort_descend$words[1:common]    # Vector b with 1000 most common words
 
@@ -112,7 +113,7 @@ R <- c(n - mlag)
 # Giving the matrix dimensions 
 
 M <- matrix(NA, nrow = R, ncol = mlag + 1)
-
+M
 # Fill the matrix column by column (for each lag)
 
 for (j in 0:mlag) {
