@@ -1,3 +1,21 @@
+#The following code takes all the works of Shakespeare, and it generates the most Shakespearean sentence using Probabilities
+#The goal is to start from a single random word and generate randomly a potential next word, and then take the new sentence and generate a third one with the same way, until it generates a full sentence
+#The scheme of this code is the following:
+# 1) It downloads the text of all his works and it clears it from all the useless elements, that being:
+#       i)  The removal of all the sentences being contained inside braces [...], which are staging descriptions
+#       ii) The removal of all words and numbers indicating either the name of the person speaking, or headings of various sorts
+#       iii)The removal of -, _, — symbols from each and every word so that the code doesn't consider a word and the same word with such symbol as different things
+#       iv) The separation of words and their potential punctuation marks attached to them, considering them as two different words
+#       v)  All the remaining words are getting turned into lower case so that "The" and "the" for example are not considered to be different
+# 2)
+# 3)
+# 4) We create a function that takes a sentence in the form of tokens of words, the matrix M, the vector of the text in the form of tokens and the probabilistic weights  
+#    which determine the preference we have of generating a word after taking into account a specific number of words of the key given and it returns a token for the next word
+# 5) Finally, it picks a word at random to start with, turns into a token, and through the aforementioned function it generates the token for the next word and appends it to the text.
+#    This procedure is repeated until a full stop is reached where we have the result we wanted.
+
+
+
 setwd("C:/Users/Alex/Documents/University/University_of_Edinburgh/1st_semester/statistical_programming/stats_assignment1")
 a <- scan("shakespeare.txt",what="character",skip=83,nlines=196043-83,
           fileEncoding="UTF-8")
