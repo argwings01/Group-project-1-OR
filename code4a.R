@@ -11,9 +11,10 @@
 #       iii)The removal of -, _, — symbols from each and every word so that the code doesn't consider a word and the same word with such symbol as different things
 #       iv) The separation of words and their potential punctuation marks attached to them, considering them as two different words
 #       v)  All the remaining words are getting turned into lower case so that "The" and "the" for example are not considered to be different
-# 2)  Finds the unique words from the cleaned vector, and manipulating the resulting data to find approximately the first 1000 unique words fron the passage.
-# 3) Makes the matrices of common word token sequences. Here, we make a vector containing the tokens for representing the whole text.
-#    We put the vector of tokens into a matrix , shifting the words from one column to another.
+# 2) It creates a vector with the 1000 most common words of the cleaned text
+# 3) It creates a vector with tokens with each token representing a word from the text as the rank of that word in the 1000 most common ones, with the position of the token in this vector
+#    being the same as the position of its respective word in the text and then it creates a matrix M, in which the first column is the token vector, and the next column is that vector 
+#    shifted by one place, and the same with the 3rd column with 2 places etc. The next column represents the token for each following word
 # 4) We create a function that takes a sentence in the form of tokens of words, the matrix M, the vector of the text in the form of tokens and the probabilistic weights  
 #    which determine the preference we have of generating a word after taking into account a specific number of words of the key given and it returns a token for the next word
 # 5) Finally, it picks a word at random to start with, turns into a token, and through the aforementioned function it generates the token for the next word and appends it to the text.
@@ -85,7 +86,7 @@ split_punct<-function(x) {
   xs<-rep("",length(ii)+length(x))                         #vector to store all the words separated from the punctuation marks
   iis<-ii+1:length(ii)                                     #where should punctuation marks go in xs
   xs[iis]<-substr(x[ii],nchar(x[ii]),nchar(x[ii]))         #nchar takes the word x[ii] which contains a punctuation mark and it returns the number of letters it contains (including the punctuation mark)
-                                                           #substr takes the word x[ii] and it keeps only the letters from nchar(x[ii]) to nchar(x[ii]), so only the last character which is the punctuation mark, and then it is added to its respective position
+  #substr takes the word x[ii] and it keeps only the letters from nchar(x[ii]) to nchar(x[ii]), so only the last character which is the punctuation mark, and then it is added to its respective position
   xs[-iis] <- x                                            #then we add all the words to the remaining positions. The words containing punctuation marks are added without the removal of the mark only temporarily
   #we know that all the punctuation marks are in the ii+(1:length(ii)) positions of the matrix, so the words that they came from are located to the exact previous one
   #with substr we take the words from this position and we keep only all the characters from the first one until the nchar(xs[ii+(1:length(ii))-1])-1_th one, which is the second last, and the result is the word itself without the last character which was the punctuation mark
@@ -163,8 +164,8 @@ next.word<-function(key,M,M1,w=rep(1,ncol(M)-1)) {
   for (i in 1:length(key2)) {                       
     key3<-key2[(length(key2)-i+1):length(key2)]               #every time we consider the last i words of our key, and after some loops we will have found all the possible tokens of words that are likely to appear after our sentence by taking into consideration every possible sub-length of the key, emanating from its end
     ii<-colSums(!(t(M[,(mlag-length(key3)+1):mlag,drop=FALSE])==key3))       #this function returns a vector with zeros in the positions that represent a match at the same numbered column as long as they are finite. The key is checked if it matches with any of the columns of the matrix M, 
-                                                                             #and the columns that are checked to be matched each time are the mlag-length(key3)+1):mlag.This choice is because the number of columns should be equal to the length of key3, in order for them to be comparable with it,and the last column is always the second last of the matrix M, as the last one contains the token of the next word 
-        v<-which(ii==0 & is.finite(ii) & !(M[,mlag+1] %in% u[adding_to_row, ]))  #v is a vector containing all the locations of ii where the value there is equal to zero and finite, and it also omits the locations that have already been added to this specific row
+    #and the columns that are checked to be matched each time are the mlag-length(key3)+1):mlag.This choice is because the number of columns should be equal to the length of key3, in order for them to be comparable with it,and the last column is always the second last of the matrix M, as the last one contains the token of the next word 
+    v<-which(ii==0 & is.finite(ii) & !(M[,mlag+1] %in% u[adding_to_row, ]))  #v is a vector containing all the locations of ii where the value there is equal to zero and finite, and it also omits the locations that have already been added to this specific row
     if (length(v)>0) {
       u[adding_to_row,][1:length(v)]<- M[v,mlag+1]                           #If any matches were found, then v contains at least one element, and then we add all the elements to the respective row in u, if no matches were found, we do nothing
     }
@@ -175,7 +176,7 @@ next.word<-function(key,M,M1,w=rep(1,ncol(M)-1)) {
   if (any(na.rm = TRUE)) {        #we omit any potential NAs in the matrix of the tokens
     while (random_token==0) {
       random_row<-sample(1:nrow(u), prob=w[1:nrow(u)]/sum(w), size=1) #We randomly select a row using the given weights as the row indicates the number of words used from the end of the key that was given, and the weights are used as it follows: Σ_{i=1}^{m} w_i * P(next word | v[i:m])
-                                                                      #The function sample is able to choose an element at random, we type size=1 in order to return only one element, and this happens with a probability of (the weight that was given for the row)/(sum of all weights)
+      #The function sample is able to choose an element at random, we type size=1 in order to return only one element, and this happens with a probability of (the weight that was given for the row)/(sum of all weights)
       random_column<-sample(1:ncol(u),size=1)                         #Then we pick a column at random which will indicate which one of the tokens in the row it returns
       random_token<-u[random_row,random_column,drop=TRUE]             #we define a new variable as the token located in the random row and column that were picked. If a "0" was picked we repeat the process until we pick a real token
     }                                                                 #drop=TRUE indicates that the value we define is the one located at the random rows and columns we chose
@@ -193,7 +194,7 @@ while (sentence %in% c(",",".",";","!",":","?"," ")) {                  #That is
 new_word<-"abcde"                                            #we define the new_word that is going to be generated as something random to begin with
 while (!(new_word %in% c("."))) {                    #while the new word is NOT a full stop, a question mark or an explanation mark, it repeats the following procedure, otherwise it stops the loop, resulting to the desirable outcome
   token_position<-rep("",length(sentence))                   #We make a vector of length equal to the length of the sentence that is going to store all the positions of the tokens representing the words in the sentence
-                          
+  
   token_of_word<-rep("",length(sentence))                    #vector that will contain all the tokens of the sentence representing its words
   token_of_word<-tokens[token_position]                      #As the vector "tokens" contains all the tokens of the passage in order, the location of a token in this vector is the same as the location of the respective word in the text, so now we have a vector filled with the tokens of our sentence in order
   next_token<-next.word(token_of_word,M,tokens)              #We find the token of the next work via our function
@@ -203,7 +204,7 @@ while (!(new_word %in% c("."))) {                    #while the new word is NOT 
   sentence[length(sentence)+1]<-new_word                     #We append the new word to our sentence, as the (n+1)_th element in the already existing vector of length n
 }
 cat(sentence, sep=" ")                                       #We print the full generated sentence nicely using cat, and placing spaces " " between all the words
-  
+
 #This work was done by students Alexandros Zachakos and Argwings Shikuku of Univeristy of Edinburgh (It was supposed to be a 3 person work but we failed to find a 3rd one, so all the work was done by only the two of us).
 #The steps that were given as instructions in the notes were completed as followed:
 # 1) Argwings Shikuku
@@ -215,7 +216,7 @@ cat(sentence, sep=" ")                                       #We print the full 
 # 7) Alexandros Zachakos
 # 8) Collaboratively
 # 9) Alexandros Zachakos
-
+#Finally, some final debugging was done by Argwings Shikuku
 
 
 
