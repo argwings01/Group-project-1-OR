@@ -11,10 +11,9 @@
 #       iii)The removal of -, _, — symbols from each and every word so that the code doesn't consider a word and the same word with such symbol as different things
 #       iv) The separation of words and their potential punctuation marks attached to them, considering them as two different words
 #       v)  All the remaining words are getting turned into lower case so that "The" and "the" for example are not considered to be different
-# 2) It creates a vector with the 1000 most common words of the cleaned text
-# 3) It creates a vector with tokens with each token representing a word from the text as the rank of that word in the 1000 most common ones, with the position of the token in this vector
-#    being the same as the position of its respective word in the text and then it creates a matrix M, in which the first column is the token vector, and the next column is that vector 
-#    shifted by one place, and the same with the 3rd column with 2 places etc. The next column represents the token for each following word
+# 2)  Finds the unique words from the cleaned vector, and manipulating the resulting data to find approximately the first 1000 unique words fron the passage.
+# 3) Makes the matrices of common word token sequences. Here, we make a vector containing the tokens for representing the whole text.
+#    We put the vector of tokens into a matrix , shifting the words from one column to another.
 # 4) We create a function that takes a sentence in the form of tokens of words, the matrix M, the vector of the text in the form of tokens and the probabilistic weights  
 #    which determine the preference we have of generating a word after taking into account a specific number of words of the key given and it returns a token for the next word
 # 5) Finally, it picks a word at random to start with, turns into a token, and through the aforementioned function it generates the token for the next word and appends it to the text.
@@ -24,7 +23,7 @@
 
 setwd("put/your/local/repo/location/here")
 a <- scan("shakespeare.txt",what="character",skip=83,nlines=196043-83,
-          fileEncoding="UTF-8")                  #First we scan the text
+          fileEncoding="UTF-8")                 #First we scan the text
 brace_places<-rep(0,2*length(grep("[[]",a)))     #vector with length equal to the number of words containing braces, both left and right, and we have made the assumption that if there is a left [ then there also exist a right ], hence the 2*
 
 #first we will remove all the words that are inside of braces [...]
@@ -103,16 +102,19 @@ a<-tolower(a_new)              #we make all the words to be lower cased for most
 b <- unique(a, incomparables = FALSE, fromLast = FALSE, nmax = NA)
 
 # Matching each unique words to the vector a to know there positions
+# finding the vector of indices indicating which element in the unique word vector each element in the text corresponds to
 
 index_vector <- match(a,b,nomatch = NA_integer_)
 index_vector <- match(a,b)
 
-# the number of times Each unique word occurs in the text
+# counting how many time each unique word occurs in the text.
+
 words_n <- tabulate (index_vector, nbins = length(b)) # normal use of tabulate
 
 # Most common words used which are approximately 1000 words
 
 # Since using rank was tough to understand, we used the alternative order()
+
 word_freq <- data.frame( words=b, words_n)        #Putting them in dataframe to for easy access to words
 sort_descend <- word_freq[order(word_freq$words_n, decreasing = T), ]  # arranging the frequencies of words from most to least
 common <- min(1000, nrow(sort_descend))       # Finding the 1000 most common words from the arranging
@@ -122,23 +124,23 @@ b <- sort_descend$words[1:common]    # Vector b with 1000 most common words
 
 tokens <- match( a, b)
 
-# Constructing the matrix M
+# Constructing the matrix M of common word token sequences
 
 mlag<-4
 n <-length(tokens)  
 R <- c(n - mlag)
 
-# Giving the matrix dimensions 
+# Giving the matrix dimensions to show the lags. Basically we are fitting all unique indexes in 4 columns.
 
 M <- matrix(NA, nrow = R, ncol = mlag + 1)
-M
+
 # Fill the matrix column by column (for each lag)
 
-for (j in 0:mlag) {
-  start_index <- 1 + j                         # The starting index is 1 for the first column (lag 0) and increases with lag
-  end_index <- n - (mlag - j)                  # The ending index is n for the first column and decreases with lag
-  shifted_vector <- tokens[start_index:end_index]    # Extract the slice of the token vector
-  M[, j + 1] <- shifted_vector                   # Assign the slice to the correct column (j+1)
+for (i in 0:mlag) {
+  start_ <- 1 + i                         # The starting index is 1 for the first column (lag 0) and increases with lag
+  end_ <- n - (mlag - i)                  # The ending index is n for the first column and decreases with lag
+  shifted_vector <- tokens[start_:end_]    # Extract the slice of the token vector
+  M[, i + 1] <- shifted_vector                   # Assign the slice to the correct column 
 }
 
 #now we will make a function which returns the token of the most likely following word, by giving the following:
@@ -189,9 +191,9 @@ while (sentence %in% c(",",".",";","!",":","?"," ")) {                  #That is
 }
 
 new_word<-"abcde"                                            #we define the new_word that is going to be generated as something random to begin with
-while (!(new_word %in% c(".","?","!"))) {                    #while the new word is NOT a full stop, a question mark or an explanation mark, it repeats the following procedure, otherwise it stops the loop, resulting to the desirable outcome
+while (!(new_word %in% c("."))) {                    #while the new word is NOT a full stop, a question mark or an explanation mark, it repeats the following procedure, otherwise it stops the loop, resulting to the desirable outcome
   token_position<-rep("",length(sentence))                   #We make a vector of length equal to the length of the sentence that is going to store all the positions of the tokens representing the words in the sentence
-  token_position<-grep(sentence,a)[1]                        #Using grep again, we locate all the locations that our sentence exists inside the text and we take the first element of the vector containing them
+                          
   token_of_word<-rep("",length(sentence))                    #vector that will contain all the tokens of the sentence representing its words
   token_of_word<-tokens[token_position]                      #As the vector "tokens" contains all the tokens of the passage in order, the location of a token in this vector is the same as the location of the respective word in the text, so now we have a vector filled with the tokens of our sentence in order
   next_token<-next.word(token_of_word,M,tokens)              #We find the token of the next work via our function
