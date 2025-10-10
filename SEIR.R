@@ -1,37 +1,15 @@
-<<<<<<< HEAD
+
 set.seed(0)
-n<-sample(5,1000,replace = T);rep(1000)
+n<- rep(1:200,5); sample(n, 1000, replace = T)
+
 n
-get.net(beta,h,nc=15){
-  beta=n
-  bat<-("")
-  for (i in 1:length(beta)) {
-    if (i!=i){
-     result[i]<-beta 
-    }
-  
-  }return(result_matrix)
-}
-
-get.net(50, 3, nc = 15)
 
 
-=======
-set.seed(0)
-n<-sample(5,1000,replace = T);rep(1000)
-n
-get.net(beta,h,nc=15){
-  beta=n
-  bat<-("")
-  for (i in 1:length(beta)) {
-    if (i!=i){
-     result[i]<-beta 
-    }
-  
-  }return(result_matrix)
-}
+# 1. Create a sequence of unique numbers (e.g., from 1 to 200).
+unique_values <- 1:200
 
-get.net(50, 3, nc = 15)
+# 2. Repeat each unique number 5 times. This results in a vector of length 1000.
+repeated_values <- rep(unique_values, each = 5)
 
-
->>>>>>> 13ebd1734834cb6928daa431523e52f81a58e528
+# 3. Randomly shuffle the order of the 1000 numbers.
+random_numbers <- sample(repeated_values, size = 1000, replace = FALSE)
