@@ -23,3 +23,50 @@ get.net<-function(beta,h,nc=15){
   }
   return(list)
 }
+
+alink<-get.net(beta,h)
+
+
+#alink the list from above
+#nt is the number of days to simulate
+#pinf is the proportion of the initial population to randomly start in the I state
+#delta I->R
+#gamma E->I
+nseir<-function(beta,h,alink,alpha=c(.1,.01,.01),delta=.2,gamma=.4,nc=15, nt = 100,pinf = .005) {
+  x<-rep(0,n)
+  x[1:(n*pinf)]<-2
+  S<-E<-I<-R<-rep(0,nt)
+  S[1]<-n*(1-pinf) ; I[1]<-n*pinf
+  for (i in 2:nt) {
+    u<-runif(n)
+    x[x==2&u<delta]<-3  #I->R
+    R[i]<-sum(x==3)
+    x[x==1&u<gamma]<-2  #E->I
+    I[i]<-sum(x==2)
+    for (j in 1:I[i]) {
+      x[x==0 & u<alpha[2]*alink[[which(x==2)]]]<-1
+    }
+    print(x[x!=0])
+  }
+}
+  
+  
+  
+#RANDOM STUFF I SAVED, IGNORE  
+#which(x==0)                    positions of susceptible people
+#get.net(beta,h)[which(x==0)]   probs of susceptible people
+#which(x==2)                    positions of infected people
+#get.net(beta,h)[which(x==0)][which(x==2)] probs of infected bumping into susceptible
+if (any(h %in% h[which(x==2)])) {
+  #ADD CODE HERE
+}
+else {
+  x[x==0 & u<alpha[2]*alink[which(x==2)]] <-1
+}
+  
+  
+  
+  
+  
+  
+  
